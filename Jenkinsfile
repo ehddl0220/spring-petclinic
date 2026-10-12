@@ -33,11 +33,13 @@ pipeline {
             steps {
                 echo 'Docker Image Create'
                 sh '''
-                docker build -t spring-petclinic:${BUILD_NUMBER} . // 버전 이름의 BUILD_NUMBER 는 젠킨스에서 빌드하면 아래에 생기는 #1,2,3 나와있는 그 번호
-                // 이후 빌드된 파일의 이름은 spring-petclinic:버전 으로 할꺼
+                docker build -t spring-petclinic:${BUILD_NUMBER} . 
                 docker tag spring-petclinic:${BUILD_NUMBER} ehddl0220/spring-petclinic:latest // 자신의 계정을 적어라
-                // latest 에 계속 새로운 버전을 추가하는거
                 '''
+                // 코멘트 안에 넣으면 고장나서 밖으로 뺌
+                // 버전 이름의 BUILD_NUMBER 는 젠킨스에서 빌드하면 아래에 생기는 #1,2,3 나와있는 그 번호
+                // 이후 빌드된 파일의 이름은 spring-petclinic:버전 으로 할꺼
+                // latest 에 계속 새로운 버전을 추가하는거
             } 
         }
         
@@ -75,11 +77,15 @@ pipeline {
                 transfers: [sshTransfer(cleanRemote: false, 
                 excludes: '', 
                 execCommand: '''
-                docker rm -f $(docker ps -aq) // 컨테이너 제거
-                docker rmi -f $(docker images -q) // 이미지 제거
-                docker run -itd -p 80:8080 --name=spring-petclinic ehddl0220/spring-petclinic:latest // 컨테이너 동작. 자신의 도커 계정을 적어라
+                docker rm -f $(docker ps -aq) 
+                docker rmi -f $(docker images -q) 
+                docker run -itd -p 80:8080 --name=spring-petclinic ehddl0220/spring-petclinic:latest 
+                ''',
+                // 컨테이너 제거    
+                // 이미지 제거 
+                // 컨테이너 동작. 자신의 도커 계정을 적어라                        
                 // 80:8080 한건, 매번 8080적고 들어가기 귀찮아서
-                ''', // 쩜 3개 사이에 있는게 명령어, 그리고 따옴표나 쌍따옴표 3개로 감싸면, 명령어가 한줄로 적히지 않고, 지금 형태 그대로 유지하면서 가져가서 쓰라는 의미(현재 상태로는 한줄씩 읽으라는 의미)
+                // 쩜 3개 사이에 있는게 명령어, 그리고 따옴표나 쌍따옴표 3개로 감싸면, 명령어가 한줄로 적히지 않고, 지금 형태 그대로 유지하면서 가져가서 쓰라는 의미(현재 상태로는 한줄씩 읽으라는 의미)
                 execTimeout: 120000, // 명령어 제한시간 주는거
                 flatten: false, 
                 makeEmptyDirs: false, 
