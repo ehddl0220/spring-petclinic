@@ -34,7 +34,7 @@ pipeline {
                 echo 'Docker Image Create'
                 sh '''
                 docker build -t spring-petclinic:${BUILD_NUMBER} . 
-                docker tag spring-petclinic:${BUILD_NUMBER} ehddl0220/spring-petclinic:latest // 자신의 계정을 적어라
+                docker tag spring-petclinic:${BUILD_NUMBER} ehddl0220/spring-petclinic:latest # 자신의 계정을 적어라
                 '''
                 // 코멘트 안에 넣으면 고장나서 밖으로 뺌
                 // 버전 이름의 BUILD_NUMBER 는 젠킨스에서 빌드하면 아래에 생기는 #1,2,3 나와있는 그 번호
