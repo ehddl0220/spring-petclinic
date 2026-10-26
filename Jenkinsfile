@@ -19,14 +19,14 @@ pipeline {
         }
         
         // Maven을 이용한 Build
-        stage('Maven Build') {
-            steps {
+        //stage('Maven Build') {
+            //steps {
                 // 아래의 sh 를 사용하지 않은 그냥 echo 는 젠킨스 내부 런타임을 사용하는거고
                 // sh 로 감싸면, /bin/sh 를 불러와서 해당 쉘 환경에서 명령어를 실행하게 된다
-                echo 'Maven Build'
-                sh 'mvn -Dmaven.test.failure.ignore=true clean package' // 위에서 maven 이라고 설정했는데, 젠킨스가 알아서 mvn 알아듣고 찾아서 씀
-            }
-        }
+                //echo 'Maven Build'
+                //sh 'mvn -Dmaven.test.failure.ignore=true clean package' // 위에서 maven 이라고 설정했는데, 젠킨스가 알아서 mvn 알아듣고 찾아서 씀
+            //}
+        //}
         
         // SSH를 이용한 k8s에 도커 명령실행 및 deployment 재실행
         stage('SSH Publish') {
@@ -48,9 +48,9 @@ pipeline {
                 makeEmptyDirs: false, 
                 noDefaultExcludes: false, 
                 patternSeparator: '[, ]+', 
-                remoteDirectory: 'deploy', 
+                remoteDirectory: '', 
                 remoteDirectorySDF: false, 
-                removePrefix: 'target', 
+                removePrefix: '', 
                 sourceFiles: 'target/*.jar, Dockerfile')], 
                 usePromotionTimestamp: false, 
                 useWorkspaceInPromotion: false, 
