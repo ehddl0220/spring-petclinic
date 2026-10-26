@@ -28,71 +28,33 @@ pipeline {
             }
         }
         
-        // Docker Image  생성
-        stage('Docker Image Create') {
-            steps {
-                echo 'Docker Image Create'
-                sh '''
-                docker build -t spring-petclinic:${BUILD_NUMBER} . # 버전 이름의 BUILD_NUMBER 는 젠킨스에서 빌드하면 아래에 생기는 #1,2,3 나와있는 그 번호
-                docker tag spring-petclinic:${BUILD_NUMBER} ehddl0220/spring-petclinic:latest # 자신의 계정을 적어라
-                # 이후 빌드된 파일의 이름은 spring-petclinic:버전 으로 할꺼
-                # latest 에 계속 새로운 버전을 추가하는거
-                '''
-            } 
-        }
-        
-        // Dockerhub Image Push
-        stage('Docker Image Push') {
-            steps {
-                echo 'Docker Image Push'
-                // Docker Login
-                sh 'echo ${DOCKERHUB_CRED_PSW} | docker login -u ${DOCKERHUB_CRED_USR} --password-stdin' // 이 방법 말고 여러가지 다양한 방법이 있음. 다양한 언어로 가능
-
-                // Docker Hub Push
-                sh 'docker image push ehddl0220/spring-petclinic:latest'
-            }
-            // Docker Image 삭제
-            post {
-                // 윗 작업이 끝난 다음에 어떻게 할꺼냐
-                // 이미지 푸쉬 하고하면 항상 이미지를 제거할 것
-                // success {} // 성공했을때 실행
-                // fail {} // 실패했을때 실행
-                always {
-                    // 이미지 제거 // 이미지 푸쉬를, 빌드넘버, latest 두개가 남아있는 상태에서 다시 빌드하다보면 하드 용량이 점점 부족해짐
-                    sh '''
-                    docker rmi -f ehddl0220/spring-petclinic:${BUILD_NUMBER}
-                    docker rmi -f ehddl0220/spring-petclinic:latest
-                    '''
-                } // 항상 실행
-            }
-        }
-        
-        // SSH를 이용한 Docker 컨테이너 실행
+        // SSH를 이용한 k8s에 도커 명령실행 및 deployment 재실행
         stage('SSH Publish') {
             steps {
                 echo 'SSH Publish'
-                sshPublisher(publishers: [sshPublisherDesc(configName: 'target', // 타겟에게 보내는거
-                transfers: [sshTransfer(cleanRemote: false, 
-                excludes: '', 
+                sshPublisher(publishers: [sshPublisherDesc(configName: 'k8s-master',
+                transfers: [sshTransfer(cleanRemote: false, excludes: '',
                 execCommand: '''
-                docker rm -f $(docker ps -aq) # 컨테이너 제거
-                docker rmi -f $(docker images -q) # 이미지 제거 
-                docker run -itd -p 80:8080 --name=spring-petclinic ehddl0220/spring-petclinic:latest # 컨테이너 동작
-                # 자신의 도커 계정을 적어라
-                # 80:8080 한건, 매번 8080적고 들어가기 귀찮아서
-                # 쩜 3개 사이에 있는게 명령어, 그리고 따옴표나 쌍따옴표 3개로 감싸면, 명령어가 한줄로 적히지 않고, 지금 형태 그대로 유지하면서 가져가서 쓰라는 의미(현재 상태로는 한줄씩 읽으라는 의미)
-                ''',
-                execTimeout: 120000, // 명령어 제한시간 주는거
+                docker build -t spring-petclinic:${BUILD_NUMBER} .
+                docker tag spring-petclinic:${BUILD_NUMBER} ehddl0220/spring-petclinic:latest
+                echo ${DOCKERHUB_CRED_PSW} | docker login -u ${DOCKERHUB_CRED_USR} --password-stdin
+                docker image push ehddl0220/spring-petclinic:latest
+                docker rmi -f ehddl0220/spring-petclinic:${BUILD_NUMBER}
+                docker rmi -f ehddl0220/spring-petclinic:latest
+                kubectl apply -n was -f /home/ubuntu/work/was/was-deploy.yml
+                ''', 
+                execTimeout: 120000, 
                 flatten: false, 
                 makeEmptyDirs: false, 
                 noDefaultExcludes: false, 
                 patternSeparator: '[, ]+', 
-                remoteDirectory: '', 
+                remoteDirectory: 'deploy', 
                 remoteDirectorySDF: false, 
                 removePrefix: 'target', 
-                sourceFiles: 'target/*.jar')], 
+                sourceFiles: 'target/*.jar, Dockerfile')], 
                 usePromotionTimestamp: false, 
-                useWorkspaceInPromotion: false, verbose: false)])
+                useWorkspaceInPromotion: false, 
+                verbose: false)])
             }
         }
     }
