@@ -41,7 +41,7 @@ pipeline {
                 docker image push ehddl0220/spring-petclinic:latest
                 docker rmi -f spring-petclinic:${BUILD_NUMBER}
                 docker rmi -f ehddl0220/spring-petclinic:latest
-                kubectl apply -n was -f /home/ubuntu/work/was/was-deploy.yml
+                kubectl rollout restart -f was-deploy.yml -n was
                 rm -rf Dockerfile target
                 ''', 
                 execTimeout: 120000, 
