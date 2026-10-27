@@ -68,9 +68,9 @@ pipeline {
         }
 
         // Deployment 에게 새로운 이미지를 받아오게 명령
-        stage('Docker Image Create') {
+        stage('Apply Deployment') {
             steps {
-                echo 'Docker Image Create'
+                echo 'Apply Deployment'
                 sh '''
                 kubectl rollout restart -f /home/ubuntu/work/was/was-deploy.yml -n was
                 '''
