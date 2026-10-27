@@ -28,35 +28,53 @@ pipeline {
             }
         }
         
-        // SSH를 이용한 k8s에 도커 명령실행 및 deployment 재실행
-        stage('SSH Publish') {
+        // Docker Image  생성
+        stage('Docker Image Create') {
             steps {
-                echo 'SSH Publish'
-                sshPublisher(publishers: [sshPublisherDesc(configName: 'k8s-master',
-                transfers: [sshTransfer(cleanRemote: false, excludes: '',
-                execCommand: '''
-                docker build -t spring-petclinic:${BUILD_NUMBER} .
-                docker tag spring-petclinic:${BUILD_NUMBER} ehddl0220/spring-petclinic:latest
-                echo ${DOCKERHUB_CRED_PSW} | docker login -u ${DOCKERHUB_CRED_USR} --password-stdin
-                docker image push ehddl0220/spring-petclinic:latest
-                docker rmi -f spring-petclinic:${BUILD_NUMBER}
-                docker rmi -f ehddl0220/spring-petclinic:latest
-                kubectl rollout restart -f /home/ubuntu/work/was/was-deploy.yml -n was
-                rm -rf Dockerfile target
-                ''', 
-                execTimeout: 120000, 
-                flatten: false, 
-                makeEmptyDirs: false, 
-                noDefaultExcludes: false, 
-                patternSeparator: '[, ]+', 
-                remoteDirectory: '', 
-                remoteDirectorySDF: false, 
-                removePrefix: '', 
-                sourceFiles: 'target/*.jar, Dockerfile')], 
-                usePromotionTimestamp: false, 
-                useWorkspaceInPromotion: false, 
-                verbose: false)])
+                echo 'Docker Image Create'
+                sh '''
+                docker build -t spring-petclinic:${BUILD_NUMBER} . # 버전 이름의 BUILD_NUMBER 는 젠킨스에서 빌드하면 아래에 생기는 #1,2,3 나와있는 그 번호
+                docker tag spring-petclinic:${BUILD_NUMBER} ehddl0220/spring-petclinic:latest # 자신의 계정을 적어라
+                # 이후 빌드된 파일의 이름은 spring-petclinic:버전 으로 할꺼
+                # latest 에 계속 새로운 버전을 추가하는거
+                '''
+            } 
+        }
+        
+        // Dockerhub Image Push
+        stage('Docker Image Push') {
+            steps {
+                echo 'Docker Image Push'
+                // Docker Login
+                sh 'echo ${DOCKERHUB_CRED_PSW} | docker login -u ${DOCKERHUB_CRED_USR} --password-stdin' // 이 방법 말고 여러가지 다양한 방법이 있음. 다양한 언어로 가능
+
+                // Docker Hub Push
+                sh 'docker image push ehddl0220/spring-petclinic:latest'
             }
+            // Docker Image 삭제
+            post {
+                // 윗 작업이 끝난 다음에 어떻게 할꺼냐
+                // 이미지 푸쉬 하고하면 항상 이미지를 제거할 것
+                // success {} // 성공했을때 실행
+                // fail {} // 실패했을때 실행
+                always {
+                    // 이미지 제거 // 이미지 푸쉬를, 빌드넘버, latest 두개가 남아있는 상태에서 다시 빌드하다보면 하드 용량이 점점 부족해짐
+                    sh '''
+                    docker rmi -f spring-petclinic:${BUILD_NUMBER}
+                    docker rmi -f ehddl0220/spring-petclinic:latest
+                    '''
+                } // 항상 실행
+            }
+        }
+
+        // Deployment 에게 새로운 이미지를 받아오게 명령
+        stage('Docker Image Create') {
+            steps {
+                echo 'Docker Image Create'
+                sh '''
+                kubectl rollout restart -f /home/ubuntu/work/was/was-deploy.yml -n was
+                '''
+            } 
         }
     }
 }
