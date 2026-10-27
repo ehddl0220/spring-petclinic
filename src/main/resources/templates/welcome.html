@@ -5,6 +5,17 @@
 <body>
 
   <h2 th:text="#{welcome}">Welcome</h2>
+
+  <!-- 💡 안전하게 컨트롤러가 넘겨준 변수만 출력하는 구조로 변경 -->
+  <div class="row" style="margin-bottom: 20px;">
+    <div class="col-md-12">
+      <div class="alert alert-info" style="font-size: 16px; text-align: center;">
+        📢 현재 요청을 처리한 컨테이너: 
+        <strong th:text="${containerName}">localhost</strong>
+      </div>
+    </div>
+  </div>
+
   <div class="row">
     <div class="col-md-12">
       <img class="img-responsive" src="../static/resources/images/pets.png" th:src="@{/resources/images/pets.png}" />
