@@ -5,11 +5,18 @@
 <body>
 
   <h2 th:text="#{welcome}">Welcome</h2>
-  <div class="row">
+
+  <!-- 🚀 자바 코드 수정 없이 컨테이너(파드) 이름을 메인페이지에 표시 -->
+  <div class="row" style="margin-bottom: 20px;">
     <div class="col-md-12">
-      <img class="img-responsive" src="../static/resources/images/pets.png" th:src="@{/resources/images/pets.png}" />
+      <div class="alert alert-info" style="font-size: 16px; text-align: center;">
+        📢 현재 요청을 처리한 컨테이너: 
+        <strong th:text="${T(java.net.InetAddress).getLocalHost().getHostName()}">localhost</strong>
+      </div>
     </div>
   </div>
+
+  <div class="row">
 
   
 </body>
