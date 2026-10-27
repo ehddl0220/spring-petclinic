@@ -39,7 +39,7 @@ pipeline {
                 docker tag spring-petclinic:${BUILD_NUMBER} ehddl0220/spring-petclinic:latest
                 echo ${DOCKERHUB_CRED_PSW} | docker login -u ${DOCKERHUB_CRED_USR} --password-stdin
                 docker image push ehddl0220/spring-petclinic:latest
-                docker rmi -f ehddl0220/spring-petclinic:${BUILD_NUMBER}
+                docker rmi -f spring-petclinic:${BUILD_NUMBER}
                 docker rmi -f ehddl0220/spring-petclinic:latest
                 kubectl apply -n was -f /home/ubuntu/work/was/was-deploy.yml
                 rm -rf Dockerfile target
