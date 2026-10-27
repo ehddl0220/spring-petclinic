@@ -72,7 +72,7 @@ pipeline {
             steps {
                 echo 'Apply Deployment'
                 sh '''
-                kubectl rollout restart -f /home/ubuntu/work/was/was-deploy.yml -n was
+                kubectl rollout restart -f was-deploy.yml -n was
                 '''
             } 
         }
