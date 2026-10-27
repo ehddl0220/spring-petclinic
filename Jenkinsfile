@@ -71,9 +71,11 @@ pipeline {
         stage('Apply Deployment') {
             steps {
                 echo 'Apply Deployment'
-                sh '''
-                kubectl rollout restart -f was-deploy.yml -n was
-                '''
+                withCredentials([file(credentialsId: 'k8s-kubeconfig', variable: 'KUBECONFIG')]) {
+                    sh '''
+                    kubectl --kubeconfig=$KUBECONFIG rollout restart -f was-deploy.yml -n was
+                    '''
+                }
             } 
         }
     }
