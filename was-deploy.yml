@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: spring-petclinic
 spec:
+  revisionHistoryLimit: 3 #  보존할 이전 ReplicaSet 의 개수 (기본값은 10)
   replicas: 3
   selector:
     matchLabels:
@@ -18,3 +19,5 @@ spec:
         env:
         - name: SERVER_SERVLET_CONTEXT_PATH
           value: /petclinic
+        ports:
+          - containerPort: 8080
