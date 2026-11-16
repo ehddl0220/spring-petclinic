@@ -59,55 +59,43 @@ pipeline {
             }
         }
         
-        // SSH를 이용한 Docker 컨테이너 실행 WAS01
-        stage('SSH Publish1') {
+        stage('SSH Publish') {
             steps {
-                echo 'SSH Publish'
-                sshPublisher(publishers: [sshPublisherDesc(configName: 'WAS01', // 타겟에게 보내는거
-                transfers: [sshTransfer(cleanRemote: false, 
-                excludes: '', 
-                execCommand: '''
-                docker rm -f $(docker ps -aq) # 컨테이너 제거
-                docker rmi -f $(docker images -q) # 이미지 제거 
-                docker run -itd -p 8080:8080 --name=spring-petclinic ehddl0220/spring-petclinic:latest # 컨테이너 동작
-                ''',
-                execTimeout: 120000, // 명령어 제한시간 주는거
-                flatten: false, 
-                makeEmptyDirs: false, 
-                noDefaultExcludes: false, 
-                patternSeparator: '[, ]+', 
-                remoteDirectory: '', 
-                remoteDirectorySDF: false, 
-                removePrefix: '', 
-                sourceFiles: '')], 
-                usePromotionTimestamp: false, 
-                useWorkspaceInPromotion: false, verbose: false)])
-            }
-        }
-		
-		// SSH를 이용한 Docker 컨테이너 실행 WAS02
-        stage('SSH Publish2') {
-            steps {
-                echo 'SSH Publish'
-                sshPublisher(publishers: [sshPublisherDesc(configName: 'WAS02', // 타겟에게 보내는거
-                transfers: [sshTransfer(cleanRemote: false, 
-                excludes: '', 
-                execCommand: '''
-                docker rm -f $(docker ps -aq) # 컨테이너 제거
-                docker rmi -f $(docker images -q) # 이미지 제거
-                docker run -itd -p 8080:8080 --name=spring-petclinic ehddl0220/spring-petclinic:latest # 컨테이너 동작
-                ''',
-                execTimeout: 120000, // 명령어 제한시간 주는거
-                flatten: false, 
-                makeEmptyDirs: false, 
-                noDefaultExcludes: false, 
-                patternSeparator: '[, ]+', 
-                remoteDirectory: '', 
-                remoteDirectorySDF: false, 
-                removePrefix: '', 
-                sourceFiles: '')], 
-                usePromotionTimestamp: false, 
-                useWorkspaceInPromotion: false, verbose: false)])
+                script {
+                    def targets = ['WAS01', 'WAS02']
+                    
+                    targets.each { target ->
+                        echo "SSH Publish to ${target}"
+                        sshPublisher(publishers: [
+                            sshPublisherDesc(
+                                configName: target, // 리스트의 서버 이름이 순서대로 들어감
+                                transfers: [
+                                    sshTransfer(
+                                        cleanRemote: false,
+                                        excludes: '',
+                                        execCommand: '''
+                                            docker rm -f $(docker ps -aq) || true
+                                            docker rmi -f $(docker images -q) || true
+                                            docker run -itd -p 8080:8080 --name=spring-petclinic ehddl0220/spring-petclinic:latest
+                                        ''',
+                                        execTimeout: 120000,
+                                        flatten: false,
+                                        makeEmptyDirs: false,
+                                        noDefaultExcludes: false,
+                                        patternSeparator: '[, ]+',
+                                        remoteDirectory: '',
+                                        remoteDirectorySDF: false,
+                                        removePrefix: '',
+                                        sourceFiles: ''
+                                    )
+                                ],
+                                usePromotionTimestamp: false,
+                                useWorkspaceInPromotion: false,
+                                verbose: false
+                            )
+                        ])
+                    }
+                }
             }
         }
     }
