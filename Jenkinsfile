@@ -31,6 +31,7 @@ pipeline {
             steps {
                 echo 'Docker Image Create'
                 sh '''
+                echo ${DOCKERHUB_CRED_PSW} | docker login -u ${DOCKERHUB_CRED_USR} --password-stdin
                 docker build -t spring-petclinic:${BUILD_NUMBER} .
                 docker tag spring-petclinic:${BUILD_NUMBER} ehddl0220/spring-petclinic:latest
                 '''
